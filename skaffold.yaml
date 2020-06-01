@@ -1,0 +1,16 @@
+apiVersion: skaffold/v2beta3
+kind: Config
+metadata:
+  name: rxsamples
+deploy:
+  kubectl:
+    manifests:
+    - k8s/deployment-*.yaml
+build:    
+    artifacts:
+    - image: chachkie-client
+      context: chachkie-client/
+      jib: {}    
+    - image: chachkie-server
+      context: chachkie-server/
+      jib: {}    

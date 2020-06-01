@@ -1,0 +1,138 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chachkie-client
+  labels:
+    app: chachkie-client
+    instance: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chachkie-client
+      instance: test
+  template:
+    metadata:
+      labels:
+        app: chachkie-client
+        instance: test
+    spec:
+      containers:
+        - name: chachkie-client
+          image: chachkie-client
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: SPRING_PROFILES_ACTIVE
+              value: k8s
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: chachkie-client
+  labels:
+    app: chachkie-client
+    instance: test
+spec:
+  type: ClusterIP
+  selector:
+    app: chachkie-client
+    instance: test
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echoserver
+  labels:
+    app: echoserver
+    instance: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echoserver
+      instance: test
+  template:
+    metadata:
+      labels:
+        app: echoserver
+        instance: test
+    spec:
+      containers:
+        - name: echoserver
+          image: gcr.io/google_containers/echoserver:1.4
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: echoserver
+    instance: test
+  name: echoserver
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: echoserver
+    instance: test
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-chachkies
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  backend:
+    serviceName: default-http-backend
+    servicePort: 80
+  rules:
+  - http:
+      paths:
+        - path: /
+          backend:
+            serviceName: echoserver
+            servicePort: 8080
+  - http:
+      paths:
+        - path: /client
+          backend:
+            serviceName: chachkie-client
+            servicePort: 8080
+        - path: /server(/|$)(.*)
+          backend:
+            serviceName: chachkie-server
+            servicePort: 8080

@@ -1,0 +1,13 @@
+server:
+  port: 8113
+---
+spring:
+  profiles: k8s
+
+server:
+  port: 8080
+
+chachkies:
+  server:
+    url: http://chachkie-server:8080/
+
