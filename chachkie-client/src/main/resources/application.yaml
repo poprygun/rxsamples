@@ -10,4 +10,15 @@ server:
 chachkies:
   server:
     url: http://chachkie-server:8080/
+---
+spring:
+  profiles: knative
 
+server:
+  port: 8080
+
+#  Get chachkies.server.url by describing the route
+#  kubectl get route -l "serving.knative.dev/service=chachkie-server" --output yaml
+chachkies:
+  server:
+    url: http://chachkie-server.default.svc.cluster.local

@@ -11,9 +11,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Flux;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
@@ -34,15 +36,11 @@ public class ChachkieClientApplication {
     }
 
     @Bean
-    RouterFunction<ServerResponse> routes(WebClient http) {
-        return route()
-                .GET("/", request -> ok().body(
-                        http.get()
-                                .uri("/chachkies")
-                                .retrieve()
-                                .bodyToFlux(Chachkie.class)
-                        , Chachkie.class))
-                .build();
+    Function<String, Flux<Chachkie>> chachkies(WebClient http) {
+        return value ->  http.get()
+                .uri("/chachkies")
+                .retrieve()
+                .bodyToFlux(Chachkie.class);
     }
 }
 

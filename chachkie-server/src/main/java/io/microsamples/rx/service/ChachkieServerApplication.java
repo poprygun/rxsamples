@@ -8,15 +8,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.server.RouterFunction;
-import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 
 import java.time.Instant;
 import java.util.UUID;
-
-import static org.springframework.web.reactive.function.server.RouterFunctions.route;
-import static org.springframework.web.reactive.function.server.ServerResponse.ok;
+import java.util.function.Function;
 
 @SpringBootApplication
 public class ChachkieServerApplication {
@@ -26,10 +22,8 @@ public class ChachkieServerApplication {
 	}
 
 	@Bean
-	RouterFunction<ServerResponse> routes(ChachkieRepository chachkieRepository) {
-		return route()
-				.GET("/chachkies", request -> ok().body(chachkieRepository.findAll(), Chachkie.class))
-				.build();
+	Function<String, Flux<Chachkie>> chachkies(ChachkieRepository chachkieRepository) {
+		return value -> chachkieRepository.findAll();
 	}
 }
 
